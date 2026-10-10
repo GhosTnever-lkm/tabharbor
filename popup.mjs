@@ -78,6 +78,8 @@ function actionButton(text, className, click) {
 }
 
 async function persist() {
+  const bytes = new TextEncoder().encode(JSON.stringify(sessions)).byteLength;
+  if (bytes > 8_000_000) throw new Error('Session library is near the browser’s local storage limit. Export selected sessions and remove old entries.');
   await chrome.storage.local.set({ [KEY]: sessions });
   render();
 }
@@ -133,6 +135,7 @@ function download(name, content) {
 async function exportAll() {
   try {
     const content = JSON.stringify({ app: 'TabHarbor', version: 1, sessions }, null, 2);
+    if (new TextEncoder().encode(content).byteLength > 2_000_000) throw new Error('Full library exceeds the 2 MB backup limit. Export large sessions one at a time.');
     download('tabharbor-sessions', content);
     tell(`Exported ${sessions.length} session(s).`);
   } catch (error) { tell(error.message, true); }
