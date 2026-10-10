@@ -1,0 +1,29 @@
+name: Package TabHarbor
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run check
+      - name: Package extension
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          zip -r "dist/TabHarbor-v${version}.zip" manifest.json popup.html popup.css popup.mjs core.mjs README.md LICENSE
+          sha256sum "dist/TabHarbor-v${version}.zip" > "dist/TabHarbor-v${version}.sha256"
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/* --repo "${{ github.repository }}" --title "TabHarbor ${{ github.ref_name }}" --notes-from-tag

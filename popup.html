@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <title>TabHarbor</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">H</div>
+        <div class="brand-copy"><strong>TabHarbor</strong><span>Your sessions, at anchor.</span></div>
+        <span class="local-badge"><i></i> LOCAL</span>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="eyebrow">SESSION SHELF <span>·</span> <span id="tab-count">0 tabs</span></div>
+        <h1 id="hero-title">Pick up where<br>you left off.</h1>
+        <p>Save a workspace now. Bring it back when you’re ready.</p>
+        <form id="save-form" class="save-row">
+          <label class="sr-only" for="session-name">Name this session</label>
+          <input id="session-name" maxlength="100" placeholder="Name this session" autocomplete="off">
+          <button class="primary" type="submit"><span aria-hidden="true">＋</span> Save session</button>
+        </form>
+      </section>
+
+      <section class="sessions" aria-labelledby="sessions-title">
+        <div class="section-head">
+          <div><div class="eyebrow">YOUR LIBRARY</div><h2 id="sessions-title">Saved sessions <span id="session-count">0</span></h2></div>
+          <div class="head-actions">
+            <button class="icon-button" id="export-all" type="button" title="Export all sessions" aria-label="Export all sessions">↓</button>
+            <button class="icon-button" id="import-open" type="button" title="Import sessions" aria-label="Import sessions">↑</button>
+            <input id="import-file" class="sr-only" type="file" accept="application/json,.json">
+          </div>
+        </div>
+        <label class="search-wrap"><span aria-hidden="true">⌕</span><span class="sr-only">Search saved sessions</span><input id="search" type="search" placeholder="Search titles and URLs"></label>
+        <p id="notice" class="notice" role="status" aria-live="polite"></p>
+        <div id="session-list" class="session-list"></div>
+        <div id="empty-state" class="empty-state" hidden>
+          <span class="empty-icon" aria-hidden="true">◌</span>
+          <strong>No sessions here yet</strong>
+          <span>Give this workspace a name and save it above.</span>
+        </div>
+      </section>
+
+      <footer><span>Stored in this browser profile</span><span>⌘ / Ctrl + K to search</span></footer>
+    </main>
+    <script type="module" src="popup.mjs"></script>
+  </body>
+</html>

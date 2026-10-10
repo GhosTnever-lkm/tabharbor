@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "TabHarbor — Session Shelf",
+  "version": "0.1.0",
+  "description": "Save, search, export, and restore browser tab sessions locally.",
+  "permissions": ["tabs", "storage"],
+  "action": {
+    "default_title": "TabHarbor",
+    "default_popup": "popup.html"
+  }
+}
