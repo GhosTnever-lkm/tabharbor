@@ -2,6 +2,8 @@
 
 **Your sessions, at anchor.**
 
+![TabHarbor: saved browser tab sessions](docs/screenshot.png)
+
 TabHarbor is a Manifest V3 extension for Chrome and Edge that saves named browser workspaces, searches saved tabs, and restores each saved window in one step. Session data stays in the extension's local storage; there is no account, server, analytics, content script, or remote API.
 
 ## Features
