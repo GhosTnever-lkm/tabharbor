@@ -1,8 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { buildSession, dedupeTabs, exportSession, groupByWindow, importSession, normalizeUrl, searchSession, searchTabs, validateSession, VERSION } from './core.mjs';
 
 const tab = (url, title = '', pinned = false) => ({ url, title, pinned });
+
+test('release versions match between package metadata, browser manifest, and changelog', () => {
+  const packageVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
+  const manifestVersion = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8')).version;
+  const changelog = readFileSync(new URL('./CHANGELOG.md', import.meta.url), 'utf8');
+  assert.equal(manifestVersion, packageVersion);
+  const versionPattern = packageVersion.replaceAll('.', '\\.');
+  assert.match(changelog, new RegExp(`^## ${versionPattern}(?: - \\d{4}-\\d{2}-\\d{2})?$`, 'm'));
+});
 
 test('normalizes HTTP(S) and rejects executable or credential URLs', () => {
   assert.equal(normalizeUrl(' HTTPS://example.com:443/a '), 'https://example.com/a');
