@@ -1,4 +1,4 @@
-import { buildSession, exportSession, importSession, sanitizeTitle, searchSession } from './core.mjs';
+import { buildSession, exportSession, importSession, LIMITS, mergeSessions, sanitizeTitle, searchSession } from './core.mjs';
 
 const KEY = 'tabharbor.sessions';
 const els = Object.fromEntries(['save-form','session-name','tab-count','session-count','search','session-list','empty-state','notice','export-all','import-open','import-file'].map((id) => [id, document.getElementById(id)]));
@@ -77,10 +77,11 @@ function actionButton(text, className, click) {
   return button;
 }
 
-async function persist() {
-  const bytes = new TextEncoder().encode(JSON.stringify(sessions)).byteLength;
+async function persist(nextSessions = sessions) {
+  const bytes = new TextEncoder().encode(JSON.stringify(nextSessions)).byteLength;
   if (bytes > 8_000_000) throw new Error('Session library is near the browser’s local storage limit. Export selected sessions and remove old entries.');
-  await chrome.storage.local.set({ [KEY]: sessions });
+  await chrome.storage.local.set({ [KEY]: nextSessions });
+  sessions = nextSessions;
   render();
 }
 
@@ -93,9 +94,8 @@ async function saveCurrent(event) {
     const session = buildSession({ name, tabs });
     const total = session.windows.reduce((count, win) => count + win.tabs.length, 0);
     if (!total) throw new Error('No regular web tabs to save.');
-    if (sessions.length >= 100) sessions.pop();
-    sessions.unshift(session);
-    await persist();
+    const nextSessions = [session, ...sessions].slice(0, LIMITS.sessions);
+    await persist(nextSessions);
     els['session-name'].value = '';
     tell(`Saved ${total} tabs across ${session.windows.length} windows.`);
   } catch (error) { tell(error.message || 'Could not save this session.', true); }
@@ -118,8 +118,7 @@ async function restoreSession(session) {
 
 async function removeSession(session) {
   if (!confirm(`Remove “${session.name}” from TabHarbor? This does not close any open tabs.`)) return;
-  sessions = sessions.filter((item) => item !== session);
-  await persist();
+  await persist(sessions.filter((item) => item !== session));
   tell('Session removed.');
 }
 
@@ -150,10 +149,10 @@ async function importFile(file) {
     const incoming = Array.isArray(parsed) ? parsed : parsed?.app === 'TabHarbor' && parsed.version === 1 ? parsed.sessions : [parsed];
     if (!Array.isArray(incoming) || incoming.length > 100) throw new Error('Import must contain at most 100 sessions.');
     const valid = incoming.map((session) => importSession(JSON.stringify(session)));
-    const byKey = new Map([...sessions, ...valid].map((session) => [`${session.name}\n${session.createdAt}`, session]));
-    sessions = [...byKey.values()].slice(0, 100);
-    await persist();
-    tell(`Imported ${valid.length} session(s).`);
+    const result = mergeSessions(sessions, valid);
+    await persist(result.sessions);
+    const duplicates = result.duplicateCount ? ` Skipped ${result.duplicateCount} duplicate(s).` : '';
+    tell(`Imported ${result.importedCount} session(s).${duplicates}`);
   } catch (error) { tell(`Import failed: ${error.message || 'invalid file'}`, true); }
   finally { els['import-file'].value = ''; }
 }

@@ -96,6 +96,27 @@ export function importSession(json) {
   return validateSession(parsed);
 }
 
+export function mergeSessions(existing, incoming) {
+  assert(Array.isArray(existing) && Array.isArray(incoming), 'sessions must be arrays');
+  assert(existing.length <= LIMITS.sessions, `session library may contain at most ${LIMITS.sessions} sessions`);
+  const merged = new Map();
+  for (const raw of existing) {
+    const session = validateSession(raw);
+    merged.set(`${session.name}\n${session.createdAt}`, session);
+  }
+  let importedCount = 0;
+  let duplicateCount = 0;
+  for (const raw of incoming) {
+    const session = validateSession(raw);
+    const key = `${session.name}\n${session.createdAt}`;
+    if (merged.has(key)) { duplicateCount += 1; continue; }
+    merged.set(key, session);
+    importedCount += 1;
+  }
+  assert(merged.size <= LIMITS.sessions, `Import would exceed the ${LIMITS.sessions}-session limit. Remove saved sessions and try again.`);
+  return { sessions: [...merged.values()], importedCount, duplicateCount };
+}
+
 export function searchTabs(tabs, query = '') {
   const terms = sanitizeTitle(query).toLocaleLowerCase().split(/\s+/).filter(Boolean);
   return (Array.isArray(tabs) ? tabs : []).filter((tab) => {

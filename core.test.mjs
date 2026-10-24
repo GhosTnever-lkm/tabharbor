@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildSession, dedupeTabs, exportSession, groupByWindow, importSession, normalizeUrl, searchSession, searchTabs, validateSession, VERSION } from './core.mjs';
+import { buildSession, dedupeTabs, exportSession, groupByWindow, importSession, LIMITS, mergeSessions, normalizeUrl, searchSession, searchTabs, validateSession, VERSION } from './core.mjs';
 
 const tab = (url, title = '', pinned = false) => ({ url, title, pinned });
 
@@ -59,4 +59,23 @@ test('searchSession returns each matching tab with its saved window index', () =
   const hits = searchSession(session, 'beta');
   assert.equal(hits.length, 1);
   assert.equal(hits[0].windowIndex, 1);
+});
+
+test('rejects imports that exceed the library limit instead of silently dropping new sessions', () => {
+  const makeSession = (index) => buildSession({ name: `Session ${index}`, now: new Date(Date.UTC(2025, 0, 1, 0, 0, index)).toISOString(), tabs: [tab(`https://example.com/${index}`, `Tab ${index}`)] });
+  const existing = Array.from({ length: LIMITS.sessions }, (_, index) => makeSession(index));
+  const incoming = [makeSession(LIMITS.sessions + 1)];
+  assert.throws(() => mergeSessions(existing, incoming), new RegExp(`Import would exceed the ${LIMITS.sessions}-session limit`));
+  assert.equal(existing.length, LIMITS.sessions);
+  assert.equal(incoming[0].name, `Session ${LIMITS.sessions + 1}`);
+});
+
+test('preserves existing sessions and reports duplicates while importing within the limit', () => {
+  const existing = buildSession({ name: 'Saved', now: '2025-01-01T00:00:00.000Z', tabs: [tab('https://example.com/original', 'Original')] });
+  const duplicate = buildSession({ name: 'Saved', now: '2025-01-01T00:00:00.000Z', tabs: [tab('https://example.com/replacement', 'Replacement')] });
+  const incoming = buildSession({ name: 'New', now: '2025-01-02T00:00:00.000Z', tabs: [tab('https://example.com/new', 'New')] });
+  const result = mergeSessions([existing], [duplicate, incoming]);
+  assert.deepEqual(result.sessions, [existing, incoming]);
+  assert.equal(result.importedCount, 1);
+  assert.equal(result.duplicateCount, 1);
 });
