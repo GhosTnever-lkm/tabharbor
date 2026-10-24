@@ -12,6 +12,7 @@ TabHarbor is a Manifest V3 extension for Chrome and Edge that saves named browse
 - Restore a saved workspace as separate browser windows, preserving tab order and pinned state.
 - Search session names, page titles, and URLs.
 - Export one session or the library as JSON, then validate JSON backups before import.
+- Keep up to 100 saved sessions. An import that would exceed the limit is rejected without truncating saved or imported sessions; entries with the same name and creation time are treated as duplicates, and existing entries are kept.
 - Deduplicate canonical URLs per saved window and discard unsupported schemes.
 - Keyboard shortcut `Ctrl/⌘ + K` focuses the search field.
 

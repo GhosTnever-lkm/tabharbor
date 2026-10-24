@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 - 2026-10-24
+
+- Reject imports that would exceed the 100-session library limit instead of silently dropping imported sessions.
+- Preserve current saved sessions when an import contains a duplicate key, report duplicates accurately, and commit in-memory changes only after storage succeeds.
+- Add regression tests for over-cap imports and duplicate handling.
+
 ## 0.1.2 - 2026-10-12
 
 - Add three common workflows and a data-flow diagram to explain how sessions and JSON backups work.
