@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildSession, dedupeTabs, exportSession, groupByWindow, importSession, LIMITS, mergeSessions, normalizeUrl, searchSession, searchTabs, validateSession, VERSION } from './core.mjs';
+import { buildSession, dedupeTabs, exportSession, groupByWindow, importSession, LIMITS, mergeSessions, normalizeUrl, prependSession, searchSession, searchTabs, validateSession, VERSION } from './core.mjs';
 
 const tab = (url, title = '', pinned = false) => ({ url, title, pinned });
 
@@ -78,4 +78,13 @@ test('preserves existing sessions and reports duplicates while importing within 
   assert.deepEqual(result.sessions, [existing, incoming]);
   assert.equal(result.importedCount, 1);
   assert.equal(result.duplicateCount, 1);
+});
+
+test('refuses a new save at the library limit without dropping existing sessions', () => {
+  const makeSession = (index) => buildSession({ name: `Session ${index}`, now: new Date(Date.UTC(2025, 0, 1, 0, 0, index)).toISOString(), tabs: [tab(`https://example.com/${index}`, `Tab ${index}`)] });
+  const existing = Array.from({ length: LIMITS.sessions }, (_, index) => makeSession(index));
+  const incoming = makeSession(LIMITS.sessions);
+  assert.throws(() => prependSession(existing, incoming), /Session library is full/);
+  assert.equal(existing.length, LIMITS.sessions);
+  assert.equal(existing[0].name, 'Session 0');
 });
