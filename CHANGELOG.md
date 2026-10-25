@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 - 2026-10-25
+
+- Reject saves that exceed the supported window or per-window tab limits instead of silently truncating a workspace.
+- Document the limits and add regressions for both boundaries.
+
 ## 0.1.3 - 2026-10-24
 
 - Reject imports that would exceed the 100-session library limit instead of silently dropping imported sessions.
