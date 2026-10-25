@@ -1,4 +1,4 @@
-import { buildSession, exportSession, importSession, LIMITS, mergeSessions, sanitizeTitle, searchSession } from './core.mjs';
+import { buildSession, exportSession, importSession, LIMITS, mergeSessions, prependSession, sanitizeTitle, searchSession } from './core.mjs';
 
 const KEY = 'tabharbor.sessions';
 const els = Object.fromEntries(['save-form','session-name','tab-count','session-count','search','session-list','empty-state','notice','export-all','import-open','import-file'].map((id) => [id, document.getElementById(id)]));
@@ -94,7 +94,7 @@ async function saveCurrent(event) {
     const session = buildSession({ name, tabs });
     const total = session.windows.reduce((count, win) => count + win.tabs.length, 0);
     if (!total) throw new Error('No regular web tabs to save.');
-    const nextSessions = [session, ...sessions].slice(0, LIMITS.sessions);
+    const nextSessions = prependSession(sessions, session);
     await persist(nextSessions);
     els['session-name'].value = '';
     tell(`Saved ${total} tabs across ${session.windows.length} windows.`);

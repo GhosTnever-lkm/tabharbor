@@ -117,6 +117,13 @@ export function mergeSessions(existing, incoming) {
   return { sessions: [...merged.values()], importedCount, duplicateCount };
 }
 
+export function prependSession(existing, incoming) {
+  assert(Array.isArray(existing), 'sessions must be an array');
+  assert(existing.length <= LIMITS.sessions, `session library may contain at most ${LIMITS.sessions} sessions`);
+  assert(existing.length < LIMITS.sessions, `Session library is full (${LIMITS.sessions} sessions). Export and remove a saved session before saving another.`);
+  return [validateSession(incoming), ...existing];
+}
+
 export function searchTabs(tabs, query = '') {
   const terms = sanitizeTitle(query).toLocaleLowerCase().split(/\s+/).filter(Boolean);
   return (Array.isArray(tabs) ? tabs : []).filter((tab) => {
