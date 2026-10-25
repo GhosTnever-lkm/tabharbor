@@ -32,6 +32,20 @@ test('groups windows in order, skips invalid URLs, and deduplicates per window',
   assert.equal(wins[0].tabs.length, 1);
 });
 
+test('rejects saves over window or per-window tab limits instead of truncating them', () => {
+  const tooManyTabs = Array.from({ length: LIMITS.tabsPerWindow + 1 }, (_, index) => ({
+    windowId: 1,
+    ...tab(`https://tab-${index}.example/`, `Tab ${index}`),
+  }));
+  const tooManyWindows = Array.from({ length: LIMITS.windows + 1 }, (_, index) => ({
+    windowId: index,
+    ...tab(`https://window-${index}.example/`, `Tab ${index}`),
+  }));
+
+  assert.throws(() => buildSession({ tabs: tooManyTabs }), /tabs per window/);
+  assert.throws(() => buildSession({ tabs: tooManyWindows }), /windows/);
+});
+
 test('builds stable named session and backup roundtrip', () => {
   const session = buildSession({ name: '  Work   set ', now: '2025-01-02T03:04:05Z', tabs: [{ windowId: 0, ...tab('https://a.io/', 'A', true) }] });
   assert.equal(session.version, VERSION);

@@ -42,16 +42,26 @@ export function dedupeTabs(tabs) {
 export function groupByWindow(tabs) {
   assert(Array.isArray(tabs), 'tabs must be an array');
   const groups = new Map();
+  const seenByWindow = new Map();
   for (const raw of tabs) {
     const tab = sanitizeTab(raw);
     if (!tab) continue;
     const id = Number.isInteger(raw.windowId) && raw.windowId >= 0 ? raw.windowId : 0;
-    if (!groups.has(id)) groups.set(id, []);
-    groups.get(id).push(tab);
+    if (!groups.has(id)) {
+      assert(groups.size < LIMITS.windows, `A session cannot include more than ${LIMITS.windows} windows.`);
+      groups.set(id, []);
+      seenByWindow.set(id, new Set());
+    }
+    const seen = seenByWindow.get(id);
+    if (seen.has(tab.url)) continue;
+    const group = groups.get(id);
+    assert(group.length < LIMITS.tabsPerWindow, `A session cannot include more than ${LIMITS.tabsPerWindow} unique tabs per window.`);
+    seen.add(tab.url);
+    group.push(tab);
   }
-  return [...groups.keys()].sort((a, b) => a - b).slice(0, LIMITS.windows).map((windowId) => ({
+  return [...groups.keys()].sort((a, b) => a - b).map((windowId) => ({
     windowId,
-    tabs: dedupeTabs(groups.get(windowId)).slice(0, LIMITS.tabsPerWindow),
+    tabs: groups.get(windowId),
   }));
 }
 

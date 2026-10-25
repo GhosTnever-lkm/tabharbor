@@ -8,7 +8,7 @@ TabHarbor is a Manifest V3 extension for Chrome and Edge that saves named browse
 
 ## Features
 
-- Save regular HTTP and HTTPS tabs across the open normal browser windows.
+- Save regular HTTP and HTTPS tabs across up to 50 normal windows, with at most 500 unique tabs per window; over-limit saves are rejected without truncation.
 - Restore a saved workspace as separate browser windows, preserving tab order and pinned state.
 - Search session names, page titles, and URLs.
 - Export one session or the library as JSON, then validate JSON backups before import.
